@@ -50,7 +50,10 @@ public class CompetitionService implements ICompetition {
 
     @Override
     public Optional<CompetitionResp> save(CompetitionReq competitionReq) {
+
         if(!isTimeValid(competitionReq)) throw new CustomException("Données requete incorrectes");
+        if(!isCompetitionDateValid(competitionReq)) throw new CustomException("Autre compétition est programmée pour ce jour");
+
         try {return Optional.of(
                 modelMapper.map(
                         competitionRepository.save(modelMapper.map(
@@ -110,7 +113,10 @@ public class CompetitionService implements ICompetition {
 
     @Override
     public boolean delete(String code) {
-        return false;
+        Optional<Competition> foundCompetitionOptional =  competitionRepository.findById(code);
+        if(foundCompetitionOptional.isEmpty()) throw new CustomException("Competition introuvable");
+        competitionRepository.deleteById(code);
+        return true;
     }
 
     public boolean closeCompetition(String code){
@@ -176,6 +182,10 @@ public class CompetitionService implements ICompetition {
 
     private boolean isTimeValid(CompetitionReq competitionReq){
         return competitionReq.getEndTime().isAfter(competitionReq.getStartTime());
+    }
+
+    private boolean isCompetitionDateValid(CompetitionReq competitionReq){
+        return competitionRepository.findByDate(competitionReq.getDate()).isEmpty();
     }
 
 }

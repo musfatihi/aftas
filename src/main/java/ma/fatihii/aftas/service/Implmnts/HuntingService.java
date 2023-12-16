@@ -43,9 +43,11 @@ public class HuntingService implements IHunting {
                     huntingReq.getNumberOfFish()+hunting.getNumberOfFish()
             );
 
-            return Optional.of(
-                    modelMapper.map(huntingRepository.save(hunting),HuntingResp.class)
-            );
+            try {
+                return Optional.of(
+                        modelMapper.map(huntingRepository.save(hunting),HuntingResp.class)
+                );
+            }catch (Exception ex){throw new CustomException("Erreur Serveur");}
         }
         else{
             try {

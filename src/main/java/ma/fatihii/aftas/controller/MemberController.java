@@ -48,4 +48,12 @@ public class MemberController {
                 .body(memberService.save(memberReq).get());
     }
 
+    @DeleteMapping("/{num}")
+    public ResponseEntity<String> deleteMember(@PathVariable Integer num) {
+        memberService.delete(num);
+        return ResponseEntity
+                .ok()
+                .body("Membre supprimé avec succès");
+    }
+
 }

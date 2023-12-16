@@ -82,6 +82,10 @@ public class MemberService implements IMember {
 
     @Override
     public boolean delete(Integer num) {
-        return false;
+        Optional<Member> foundMemberOptional =  memberRepository.findById(num);
+        if(foundMemberOptional.isEmpty()) throw new CustomException("Member introuvable");
+
+        memberRepository.deleteById(num);
+        return true;
     }
 }

@@ -65,7 +65,13 @@ public class LevelService implements ILevel {
 
     @Override
     public boolean delete(Integer code) {
-        return false;
+
+        Optional<Level> foundLevelOptional =  levelRepository.findById(code);
+        if(foundLevelOptional.isEmpty()) throw new CustomException("Niveau introuvable");
+
+        levelRepository.deleteById(code);
+        return true;
+
     }
 
     private boolean isValidLevel(LevelReq levelReq){

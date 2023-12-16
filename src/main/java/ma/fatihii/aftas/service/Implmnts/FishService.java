@@ -78,7 +78,11 @@ public class FishService implements IFish {
 
     @Override
     public boolean delete(String name) {
-        return false;
+        Optional<Fish> foundFishOptional =  fishRepository.findById(name);
+        if(foundFishOptional.isEmpty()) throw new CustomException("Poisson introuvable");
+
+        fishRepository.deleteById(name);
+        return true;
     }
 
     private FishResp convertFishToFishResp(Fish fish) {

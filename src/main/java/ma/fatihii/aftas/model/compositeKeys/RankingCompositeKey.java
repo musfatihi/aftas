@@ -12,14 +12,18 @@ import java.io.Serializable;
 
 @Getter
 @Setter
+@RequiredArgsConstructor
+@NoArgsConstructor
 @Embeddable
 public class RankingCompositeKey implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "competition_code")
+    @NonNull
     private Competition competition;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_num")
+    @NonNull
     private Member member;
 }

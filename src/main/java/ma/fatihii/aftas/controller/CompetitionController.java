@@ -54,4 +54,12 @@ public class CompetitionController {
                 .body(competitionService.save(competitionReq).get());
     }
 
+    @DeleteMapping("/{code}")
+    public ResponseEntity<String> deleteCompetition(@PathVariable String code) {
+        competitionService.delete(code);
+        return ResponseEntity
+                .ok()
+                .body("Compétition supprimée avec succès");
+    }
+
 }

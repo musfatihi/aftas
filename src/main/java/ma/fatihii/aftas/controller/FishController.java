@@ -45,4 +45,12 @@ public class FishController {
                 .body(fishService.save(fishReq).get());
     }
 
+    @DeleteMapping("/{name}")
+    public ResponseEntity<String> deleteFish(@PathVariable String name) {
+        fishService.delete(name);
+        return ResponseEntity
+                .ok()
+                .body("Poisson supprimée avec succès");
+    }
+
 }

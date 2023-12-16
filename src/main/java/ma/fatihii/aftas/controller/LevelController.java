@@ -45,4 +45,12 @@ public class LevelController {
                 .status(HttpStatus.CREATED)
                 .body(levelService.save(levelReq).get());
     }
+
+    @DeleteMapping("/{code}")
+    public ResponseEntity<String> deleteLevel(@PathVariable Integer code) {
+        levelService.delete(code);
+        return ResponseEntity
+                .ok()
+                .body("Niveau supprimé avec succès");
+    }
 }

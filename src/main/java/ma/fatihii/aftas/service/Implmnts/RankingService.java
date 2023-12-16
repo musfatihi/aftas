@@ -67,7 +67,10 @@ public class RankingService implements IRanking {
 
     @Override
     public boolean delete(RankingCompositeKey rankingCompositeKey) {
-        return false;
+        Optional<Ranking> rankingOptional = rankingRepository.findById(rankingCompositeKey);
+        if(rankingOptional.isEmpty()) throw new CustomException("Place introuvable");
+        rankingRepository.deleteById(rankingCompositeKey);
+        return true;
     }
 
     private boolean checkDateCompetition(RankingReq rankingReq){
