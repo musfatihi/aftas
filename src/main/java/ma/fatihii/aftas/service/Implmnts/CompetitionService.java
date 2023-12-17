@@ -135,7 +135,7 @@ public class CompetitionService implements ICompetition {
 
             List<Hunting> huntingList = huntingRepository.findByCompetitionAndMember(reservedPlace.getRankingCompositeKey().getCompetition(),reservedPlace.getRankingCompositeKey().getMember());
 
-            Integer points = 0;
+            int points = 0;
 
             for(Hunting hunting:huntingList){
                 points+=hunting.getFish().getLevel().getPoints()*hunting.getNumberOfFish();

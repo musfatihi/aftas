@@ -81,7 +81,7 @@ public class RankingService implements IRanking {
 
         if(competitionOptional.isEmpty()) throw new CustomException("Compétition introuvable");
 
-        return LocalDateTime.now().plus(24, ChronoUnit.HOURS).isBefore(
+        return LocalDateTime.now().plusHours(24).isBefore(
                 competitionOptional.get().getDate().atTime(competitionOptional.get().getStartTime())
                 );
 
@@ -108,9 +108,7 @@ public class RankingService implements IRanking {
                                     competitionRepository.findById(code).get()
                                     );
         Collections.sort(participants);
-        List<Ranking> leaderBoard = new ArrayList<>();
-
-        leaderBoard = participants.size()>4?participants.subList(0,3):participants;
+        List<Ranking> leaderBoard = participants.size()>4?participants.subList(0,3):participants;
 
         return List.of(
                     modelMapper.map(
