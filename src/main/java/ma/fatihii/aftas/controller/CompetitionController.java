@@ -1,6 +1,7 @@
 package ma.fatihii.aftas.controller;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import ma.fatihii.aftas.dto.competition.CompetitionReq;
 import ma.fatihii.aftas.dto.competition.CompetitionResp;
 import ma.fatihii.aftas.service.Intrfcs.ICompetition;
@@ -15,26 +16,24 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping(path = "api/v1/competitions")
 @CrossOrigin
+@RequiredArgsConstructor
 public class CompetitionController {
 
     private final ICompetition competitionService;
 
-    @Autowired
-    CompetitionController(ICompetition competitionService){
-        this.competitionService = competitionService;
-    }
-
     @GetMapping("/{code}")
     public ResponseEntity<CompetitionResp> getCompetition(@PathVariable String code) {
         return ResponseEntity
-                .status(HttpStatus.OK)
+                .ok()
                 .body(competitionService.findById(code).get());
     }
 
     @GetMapping("/close/{code}")
     public ResponseEntity<String> closeCompetition(@PathVariable String code) {
         this.competitionService.closeCompetition(code);
-        return ResponseEntity.status(HttpStatus.OK).body("Competittion fermée");
+        return ResponseEntity
+                .ok()
+                .body("Competittion fermée");
     }
 
     @GetMapping
@@ -42,7 +41,7 @@ public class CompetitionController {
             @RequestParam(required = false) String status,
             Pageable pageable) {
         return ResponseEntity
-                .status(HttpStatus.OK)
+                .ok()
                 .body(competitionService.findAllCompetitions(status,pageable));
     }
 
@@ -52,6 +51,13 @@ public class CompetitionController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(competitionService.save(competitionReq).get());
+    }
+
+    @PutMapping
+    public ResponseEntity<CompetitionResp> updateCompetition(@RequestBody @Valid CompetitionReq competitionReq) {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(competitionService.update(competitionReq).get());
     }
 
     @DeleteMapping("/{code}")

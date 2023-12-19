@@ -1,6 +1,7 @@
 package ma.fatihii.aftas.controller;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import ma.fatihii.aftas.dto.ranking.RankingReq;
 import ma.fatihii.aftas.dto.ranking.RankingResp;
 import ma.fatihii.aftas.model.Competition;
@@ -17,14 +18,10 @@ import java.util.List;
 @RestController
 @RequestMapping(path = "api/v1/rankings")
 @CrossOrigin
+@RequiredArgsConstructor
 public class RankingController {
 
     private final IRanking rankingService;
-
-    @Autowired
-    RankingController(IRanking rankingService){
-        this.rankingService = rankingService;
-    }
 
     @PostMapping
     public ResponseEntity<RankingResp> saveRanking(@RequestBody @Valid RankingReq rankingReq) {
@@ -36,14 +33,18 @@ public class RankingController {
     @GetMapping("/competition/{code}")
     public ResponseEntity<List<RankingResp>> getLeaderBoard(@PathVariable String code) {
         return ResponseEntity
-                .status(HttpStatus.OK)
+                .ok()
                 .body(rankingService.getLeaderBoard(code));
     }
 
     @DeleteMapping("/{code}/{num}")
     public ResponseEntity<String> deleteRanking(@PathVariable String code,
                                                 @PathVariable Integer num) {
-        rankingService.delete(new RankingCompositeKey(new Competition(code),new Member(num)));
+        Member member = new Member();
+        member.setNum(num);
+        Competition competition = new Competition();
+        competition.setCode(code);
+        rankingService.delete(new RankingCompositeKey(competition,member));
         return ResponseEntity
                 .ok()
                 .body("Place reservée supprimée avec succès");

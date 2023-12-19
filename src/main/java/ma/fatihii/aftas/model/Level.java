@@ -10,13 +10,10 @@ import java.util.List;
 @Table
 public class Level {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer code;
 
-    @NonNull
     private String description;
 
-    @NonNull
     private Integer points;
 
     @OneToMany(mappedBy = "level",

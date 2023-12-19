@@ -1,29 +1,26 @@
 package ma.fatihii.aftas.service.Implmnts;
 
+import lombok.RequiredArgsConstructor;
 import ma.fatihii.aftas.dto.member.MemberReq;
 import ma.fatihii.aftas.dto.member.MemberResp;
-import ma.fatihii.aftas.exception.CustomException;
+import ma.fatihii.aftas.exception.NotFoundException;
+import ma.fatihii.aftas.exception.ServerErrorException;
 import ma.fatihii.aftas.model.Member;
 import ma.fatihii.aftas.repository.MemberRepository;
 import ma.fatihii.aftas.service.Intrfcs.IMember;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class MemberService implements IMember {
 
     private final MemberRepository memberRepository;
     private final ModelMapper modelMapper;
 
-    @Autowired
-    MemberService(MemberRepository memberRepository,ModelMapper modelMapper){
-        this.memberRepository = memberRepository;
-        this.modelMapper = modelMapper;
-    }
 
     @Override
     public Optional<MemberResp> save(MemberReq memberReq) {
@@ -34,12 +31,27 @@ public class MemberService implements IMember {
                         ), MemberResp.class)
                 );
             }
-        catch (Exception ex){throw new CustomException("Erreur Serveur");}
+        catch (Exception ex){throw new ServerErrorException("Erreur Serveur");}
     }
 
     @Override
     public Optional<MemberResp> update(MemberReq memberReq) {
-        return Optional.empty();
+
+        memberRepository.findById(memberReq.getNum())
+                .orElseThrow(()->new NotFoundException("Member introuvable"));
+
+        Member updatedMember = modelMapper.map(memberReq,Member.class);
+
+        try {return Optional.of(
+                modelMapper.map(
+                        memberRepository.save(
+                        updatedMember
+                        ), MemberResp.class)
+        );
+
+        }
+        catch (Exception ex){throw new ServerErrorException("Erreur Serveur");}
+
     }
 
     @Override
@@ -73,17 +85,18 @@ public class MemberService implements IMember {
 
     @Override
     public Optional<MemberResp> findById(Integer num) {
-        Optional<Member> foundMemberOptional =  memberRepository.findById(num);
-        if(foundMemberOptional.isEmpty()) throw new CustomException("Member introuvable");
+        Member foundMember =  memberRepository.findById(num)
+                .orElseThrow(()->new NotFoundException("Member introuvable"));
+
         return Optional.of(
-                modelMapper.map(foundMemberOptional.get(),MemberResp.class)
+                modelMapper.map(foundMember,MemberResp.class)
         );
     }
 
     @Override
     public boolean delete(Integer num) {
-        Optional<Member> foundMemberOptional =  memberRepository.findById(num);
-        if(foundMemberOptional.isEmpty()) throw new CustomException("Member introuvable");
+        memberRepository.findById(num)
+                        .orElseThrow(()->new NotFoundException("Member introuvable"));
 
         memberRepository.deleteById(num);
         return true;

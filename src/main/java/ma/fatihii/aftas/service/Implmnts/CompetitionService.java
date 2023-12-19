@@ -1,8 +1,11 @@
 package ma.fatihii.aftas.service.Implmnts;
 
+import lombok.RequiredArgsConstructor;
 import ma.fatihii.aftas.dto.competition.CompetitionReq;
 import ma.fatihii.aftas.dto.competition.CompetitionResp;
-import ma.fatihii.aftas.exception.CustomException;
+import ma.fatihii.aftas.exception.BadRequestException;
+import ma.fatihii.aftas.exception.NotFoundException;
+import ma.fatihii.aftas.exception.ServerErrorException;
 import ma.fatihii.aftas.model.Competition;
 import ma.fatihii.aftas.model.Hunting;
 import ma.fatihii.aftas.model.Ranking;
@@ -11,7 +14,6 @@ import ma.fatihii.aftas.repository.HuntingRepository;
 import ma.fatihii.aftas.repository.RankingRepository;
 import ma.fatihii.aftas.service.Intrfcs.ICompetition;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +26,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class CompetitionService implements ICompetition {
 
     private final CompetitionRepository competitionRepository;
@@ -34,25 +37,13 @@ public class CompetitionService implements ICompetition {
 
     private final HuntingRepository huntingRepository;
 
-    @Autowired
-    CompetitionService(
-            CompetitionRepository competitionRepository,
-            RankingRepository rankingRepository,
-            HuntingRepository huntingRepository,
-            ModelMapper modelMapper
-    ){
-        this.competitionRepository = competitionRepository;
-        this.rankingRepository = rankingRepository;
-        this.huntingRepository = huntingRepository;
-        this.modelMapper = modelMapper;
-    }
 
-
+    //------------------------------------------------CRUD-----------------------------------
     @Override
     public Optional<CompetitionResp> save(CompetitionReq competitionReq) {
 
-        if(!isTimeValid(competitionReq)) throw new CustomException("Données requete incorrectes");
-        if(!isCompetitionDateValid(competitionReq)) throw new CustomException("Autre compétition est programmée pour ce jour");
+        if(!isTimeValid(competitionReq)) throw new BadRequestException("Données incorrectes");
+        if(!isCompetitionDateValid(competitionReq)) throw new BadRequestException("Autre compétition est programmée pour ce jour");
 
         try {return Optional.of(
                 modelMapper.map(
@@ -61,12 +52,27 @@ public class CompetitionService implements ICompetition {
                         ), CompetitionResp.class)
                 );
             }
-        catch (Exception ex){throw new CustomException("Erreur Serveur");}
+        catch (Exception ex){throw new ServerErrorException("Erreur Serveur");}
     }
 
     @Override
     public Optional<CompetitionResp> update(CompetitionReq competitionReq) {
-        return Optional.empty();
+
+        if(!isTimeValid(competitionReq)) throw new BadRequestException("Données incorrectes");
+
+        competitionRepository.findById(competitionReq.getCode())
+                                .orElseThrow(()->new NotFoundException("Competition introuvable"));
+
+        Competition updatedCompetition = modelMapper.map(competitionReq,Competition.class);
+
+        try {return Optional.of(
+                modelMapper.map(
+                        competitionRepository.save(
+                                updatedCompetition
+                        ), CompetitionResp.class)
+        );
+        }
+        catch (Exception ex){throw new ServerErrorException("Erreur Serveur");}
     }
 
     @Override
@@ -104,30 +110,31 @@ public class CompetitionService implements ICompetition {
 
     @Override
     public Optional<CompetitionResp> findById(String code) {
-        Optional<Competition> foundCompetitionOptional =  competitionRepository.findById(code);
-        if(foundCompetitionOptional.isEmpty()) throw new CustomException("Competition introuvable");
+        Competition foundCompetition =  competitionRepository.findById(code)
+                .orElseThrow(()->new NotFoundException("Competition introuvable"));
         return Optional.of(
-                modelMapper.map(foundCompetitionOptional.get(),CompetitionResp.class)
+                modelMapper.map(foundCompetition,CompetitionResp.class)
         );
     }
 
     @Override
     public boolean delete(String code) {
-        Optional<Competition> foundCompetitionOptional =  competitionRepository.findById(code);
-        if(foundCompetitionOptional.isEmpty()) throw new CustomException("Competition introuvable");
+        competitionRepository.findById(code)
+                .orElseThrow(()->new NotFoundException("Competition introuvable"));
         competitionRepository.deleteById(code);
         return true;
     }
 
+    //---------------------------------------------------------------------------------------
+
     public boolean closeCompetition(String code){
 
-        Optional<Competition> foundCompetitionOptional =  competitionRepository.findById(code);
+        Competition foundCompetition =  competitionRepository.findById(code)
+                .orElseThrow(()->new NotFoundException("Competition introuvable"));
 
-        if(foundCompetitionOptional.isEmpty()) throw new CustomException("Competition introuvable");
+        List<Ranking> reservedPlaces = rankingRepository.findByRankingCompositeKeyCompetition(foundCompetition);
 
-        List<Ranking> reservedPlaces = rankingRepository.findByRankingCompositeKeyCompetition(foundCompetitionOptional.get());
-
-        if(reservedPlaces.isEmpty()) throw new CustomException("Aucun participant");
+        if(reservedPlaces.isEmpty()) throw new BadRequestException("Aucun participant");
 
         List<Ranking> scoredReservedPlaces = new ArrayList<>();
 
@@ -147,21 +154,31 @@ public class CompetitionService implements ICompetition {
 
         }
 
-        //-----------------------------------------------
-        Collections.sort(scoredReservedPlaces);
-        for (int i=0;i<scoredReservedPlaces.size();i++){
-            scoredReservedPlaces.get(i).setRank(i+1);
-        }
-        //-----------------------------------------------
-
         rankingRepository.saveAll(scoredReservedPlaces);
 
+        rankingRepository.saveAll(rankContestants(foundCompetition));
+
         return true;
+    }
+
+    public List<Ranking> rankContestants(Competition competition){
+
+        List<Ranking> contestants = rankingRepository.findByRankingCompositeKeyCompetition(competition);
+
+        Collections.sort(contestants);
+
+        for (int i=0;i<contestants.size();i++){
+            contestants.get(i).setRank(i+1);
+        }
+
+        return contestants;
     }
 
     private CompetitionResp convertCompetitionToCompetitionResp(Competition competition) {
         return modelMapper.map(competition,CompetitionResp.class);
     }
+
+    //--------------------------------------used to filter competition based on their states-----
 
     private boolean isStatusCompetition(Competition competition,String status) {
         return switch (status) {
@@ -174,18 +191,27 @@ public class CompetitionService implements ICompetition {
                     );
             case "closed" -> competition.getDate().isBefore(LocalDate.now()) ||
                     (competition.getDate().equals(LocalDate.now()) &&
-                            LocalTime.now().isAfter(competition.getStartTime())
+                            LocalTime.now().isAfter(competition.getEndTime())
                     );
             default -> false;
         };
     }
 
+
+    //--------------------------------------Validation Competition Data---------------------------------
+
+
+    //--------------------------------------One Competition a day----------------------------
+    private boolean isCompetitionDateValid(CompetitionReq competitionReq){
+        return competitionRepository.findByDate(competitionReq.getDate()).isEmpty();
+    }
+
+    //--------------------------------------Compare End Time to Start Time
+
     private boolean isTimeValid(CompetitionReq competitionReq){
         return competitionReq.getEndTime().isAfter(competitionReq.getStartTime());
     }
 
-    private boolean isCompetitionDateValid(CompetitionReq competitionReq){
-        return competitionRepository.findByDate(competitionReq.getDate()).isEmpty();
-    }
+    //--------------------------------------------------------------------------------------
 
 }

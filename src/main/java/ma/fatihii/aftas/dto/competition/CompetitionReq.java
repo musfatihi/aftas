@@ -3,6 +3,7 @@ package ma.fatihii.aftas.dto.competition;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
+import ma.fatihii.aftas.validation.StartEndTimeValid;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
@@ -11,6 +12,7 @@ import java.time.LocalTime;
 @Getter
 @Setter
 public class CompetitionReq {
+    private String code;
     @Future
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     //@JsonFormat(pattern = "yyyy-MM-dd")

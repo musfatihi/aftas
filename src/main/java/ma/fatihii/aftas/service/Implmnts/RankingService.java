@@ -1,8 +1,11 @@
 package ma.fatihii.aftas.service.Implmnts;
 
+import lombok.RequiredArgsConstructor;
 import ma.fatihii.aftas.dto.ranking.RankingReq;
 import ma.fatihii.aftas.dto.ranking.RankingResp;
-import ma.fatihii.aftas.exception.CustomException;
+import ma.fatihii.aftas.exception.BadRequestException;
+import ma.fatihii.aftas.exception.NotFoundException;
+import ma.fatihii.aftas.exception.ServerErrorException;
 import ma.fatihii.aftas.model.Competition;
 import ma.fatihii.aftas.model.Ranking;
 import ma.fatihii.aftas.model.compositeKeys.RankingCompositeKey;
@@ -10,44 +13,32 @@ import ma.fatihii.aftas.repository.CompetitionRepository;
 import ma.fatihii.aftas.repository.RankingRepository;
 import ma.fatihii.aftas.service.Intrfcs.IRanking;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class RankingService implements IRanking {
 
     private final RankingRepository rankingRepository;
     private final CompetitionRepository competitionRepository;
     private final ModelMapper modelMapper;
 
-    @Autowired
-
-    RankingService(RankingRepository rankingRepository,
-                   CompetitionRepository competitionRepository,
-                   ModelMapper modelMapper){
-        this.rankingRepository = rankingRepository;
-        this.competitionRepository = competitionRepository;
-        this.modelMapper = modelMapper;
-    }
-
     @Override
     public Optional<RankingResp> save(RankingReq rankingReq) {
-        if(!checkDateCompetition(rankingReq)) throw new CustomException("Participation à cette compétition n'est plus possible(Date)");
-        if(!checkPlaceCompetition(rankingReq)) throw new CustomException("Participation à cette compétition n'est plus possible(Places)");
+        if(!checkDateCompetition(rankingReq)) throw new BadRequestException("Participation à cette compétition n'est plus possible(Date)");
+        if(!checkPlaceCompetition(rankingReq)) throw new BadRequestException("Participation à cette compétition n'est plus possible(Places)");
         try {return Optional.of(
                 modelMapper.map(rankingRepository.save(
                         modelMapper.map(rankingReq, Ranking.class)
                 ), RankingResp.class)
             );
         }
-        catch (Exception ex){throw new CustomException("Erreur Serveur");}
+        catch (Exception ex){throw new ServerErrorException("Erreur Serveur");}
     }
 
     @Override
@@ -67,22 +58,22 @@ public class RankingService implements IRanking {
 
     @Override
     public boolean delete(RankingCompositeKey rankingCompositeKey) {
-        Optional<Ranking> rankingOptional = rankingRepository.findById(rankingCompositeKey);
-        if(rankingOptional.isEmpty()) throw new CustomException("Place introuvable");
+
+        rankingRepository.findById(rankingCompositeKey)
+                         .orElseThrow(()->new NotFoundException("Place introuvable"));
+
         rankingRepository.deleteById(rankingCompositeKey);
         return true;
     }
 
     private boolean checkDateCompetition(RankingReq rankingReq){
 
-        Optional<Competition> competitionOptional = competitionRepository.findById(
+        Competition competition = competitionRepository.findById(
                 rankingReq.getRankingCompositeKey().getCompetition().getCode()
-        );
-
-        if(competitionOptional.isEmpty()) throw new CustomException("Compétition introuvable");
+        ).orElseThrow(()->new NotFoundException("Compétition introuvable"));
 
         return LocalDateTime.now().plusHours(24).isBefore(
-                competitionOptional.get().getDate().atTime(competitionOptional.get().getStartTime())
+                competition.getDate().atTime(competition.getStartTime())
                 );
 
     }
@@ -90,24 +81,28 @@ public class RankingService implements IRanking {
 
     private boolean checkPlaceCompetition(RankingReq rankingReq){
 
-        Optional<Competition> competitionOptional = competitionRepository.findById(
+        Competition competition = competitionRepository.findById(
                 rankingReq.getRankingCompositeKey().getCompetition().getCode()
-        );
+        ).orElseThrow(()->new NotFoundException("Compétition introuvable"));
 
         Integer reservedPlaces = rankingRepository.countByRankingCompositeKeyCompetition(
                 modelMapper.map(rankingReq.getRankingCompositeKey().getCompetition(),Competition.class)
         );
 
-        return competitionOptional.get().getNumberOfParticipants()>reservedPlaces;
+        return competition.getNumberOfParticipants()>reservedPlaces;
     }
 
     public List<RankingResp> getLeaderBoard(String code){
-        if(competitionRepository.findById(code).isEmpty()) throw new CustomException("Competition introuvable");
+
+        competitionRepository.findById(code).
+        orElseThrow(()->new NotFoundException("Competition introuvable"));
 
         List<Ranking> participants = rankingRepository.findByRankingCompositeKeyCompetition(
                                     competitionRepository.findById(code).get()
                                     );
+
         Collections.sort(participants);
+
         List<Ranking> leaderBoard = participants.size()>4?participants.subList(0,3):participants;
 
         return List.of(

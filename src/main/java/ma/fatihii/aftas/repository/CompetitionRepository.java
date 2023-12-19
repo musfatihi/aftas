@@ -10,4 +10,5 @@ import java.util.Optional;
 @Repository
 public interface CompetitionRepository extends JpaRepository<Competition,String> {
     Optional<Competition> findByDate(LocalDate date);
+
 }

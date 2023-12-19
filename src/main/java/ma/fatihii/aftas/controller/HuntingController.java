@@ -1,6 +1,7 @@
 package ma.fatihii.aftas.controller;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import ma.fatihii.aftas.dto.hunting.HuntingReq;
 import ma.fatihii.aftas.dto.hunting.HuntingResp;
 import ma.fatihii.aftas.service.Intrfcs.IHunting;
@@ -12,14 +13,10 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping(path = "api/v1/huntings")
 @CrossOrigin
+@RequiredArgsConstructor
 public class HuntingController {
 
     private final IHunting huntingService;
-
-    @Autowired
-    HuntingController(IHunting huntingService){
-        this.huntingService = huntingService;
-    }
 
     @PostMapping
     public ResponseEntity<HuntingResp> saveHunting(@RequestBody @Valid HuntingReq huntingReq) {

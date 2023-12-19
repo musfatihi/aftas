@@ -10,6 +10,8 @@ import ma.fatihii.aftas.enums.IdentityDocumentType;
 @Setter
 public class MemberReq {
 
+    private Integer num;
+
     @NotBlank(message = "Prénom ne doit pas etre vide")
     private String name;
 

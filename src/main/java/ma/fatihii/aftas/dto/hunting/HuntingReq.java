@@ -1,7 +1,7 @@
 package ma.fatihii.aftas.dto.hunting;
 
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,10 +16,10 @@ public class HuntingReq {
 
     @Positive(message = "Nombre de poissons doit etre positif")
     private Integer numberOfFish;
-    @NotNull
+    @Valid
     private CompetitionCode competition;
-    @NotNull
+    @Valid
     private MemberNum member;
-    @NotNull
+    @Valid
     private FishName fish;
 }

@@ -12,12 +12,10 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@RequiredArgsConstructor
 @NoArgsConstructor
 @Table
 public class Competition {
     @Id
-    @NonNull
     private String code;
 
     private LocalDate date;

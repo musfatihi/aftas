@@ -1,6 +1,6 @@
 package ma.fatihii.aftas.dto.ranking;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.Valid;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -12,8 +12,8 @@ import ma.fatihii.aftas.dto.member.MemberNum;
 @Setter
 public class RankingCompositeKeyValidation {
 
-    @NotNull
+    @Valid
     private CompetitionCode competition;
-    @NotNull
+    @Valid
     private MemberNum member;
 }

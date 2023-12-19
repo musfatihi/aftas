@@ -1,34 +1,32 @@
 package ma.fatihii.aftas.service.Implmnts;
 
+import lombok.RequiredArgsConstructor;
 import ma.fatihii.aftas.dto.fish.FishReq;
 import ma.fatihii.aftas.dto.fish.FishResp;
-import ma.fatihii.aftas.exception.CustomException;
+import ma.fatihii.aftas.exception.NotFoundException;
+import ma.fatihii.aftas.exception.ServerErrorException;
 import ma.fatihii.aftas.model.Fish;
 import ma.fatihii.aftas.repository.FishRepository;
 import ma.fatihii.aftas.service.Intrfcs.IFish;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.ErrorResponseException;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class FishService implements IFish {
 
     private final FishRepository fishRepository;
 
     private final ModelMapper modelMapper;
 
-    @Autowired
-    FishService(FishRepository fishRepository,ModelMapper modelMapper){
-        this.fishRepository = fishRepository;
-        this.modelMapper = modelMapper;
-    }
 
     @Override
     public Optional<FishResp> save(FishReq fishReq) {
@@ -39,12 +37,23 @@ public class FishService implements IFish {
                         ), FishResp.class)
                 );
             }
-        catch (Exception ex){throw new CustomException("Erreur Serveur");}
+        catch (Exception ex){throw new ServerErrorException("Erreur Serveur");}
     }
 
     @Override
     public Optional<FishResp> update(FishReq fishReq) {
-        return Optional.empty();
+
+        fishRepository.findById(fishReq.getName())
+                      .orElseThrow(()->new NotFoundException("Poisson introuvable"));
+
+        try {return Optional.of(
+                modelMapper.map(
+                        fishRepository.save(
+                                modelMapper.map(fishReq, Fish.class)
+                        ), FishResp.class)
+        );
+        }
+        catch (Exception ex){throw new ServerErrorException("Erreur Serveur");}
     }
 
     @Override
@@ -69,17 +78,20 @@ public class FishService implements IFish {
 
     @Override
     public Optional<FishResp> findById(String name) {
-        Optional<Fish> foundFishOptional =  fishRepository.findById(name);
-        if(foundFishOptional.isEmpty()) throw new CustomException("Poisson introuvable");
+
+        Fish foundFish =  fishRepository.findById(name)
+                          .orElseThrow(()->new NotFoundException("Poisson introuvable"));
+
         return Optional.of(
-                modelMapper.map(foundFishOptional.get(),FishResp.class)
+                modelMapper.map(foundFish,FishResp.class)
         );
     }
 
     @Override
     public boolean delete(String name) {
-        Optional<Fish> foundFishOptional =  fishRepository.findById(name);
-        if(foundFishOptional.isEmpty()) throw new CustomException("Poisson introuvable");
+
+        fishRepository.findById(name)
+                .orElseThrow(()->new NotFoundException("Poisson introuvable"));
 
         fishRepository.deleteById(name);
         return true;
