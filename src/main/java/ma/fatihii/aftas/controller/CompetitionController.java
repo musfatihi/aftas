@@ -70,4 +70,5 @@ public class CompetitionController {
                 .body("Compétition supprimée avec succès");
     }
 
+
 }
