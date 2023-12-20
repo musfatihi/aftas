@@ -28,6 +28,7 @@ public class FishController {
                 .body(fishService.findById(name).get());
     }
 
+
     @GetMapping
     public ResponseEntity<Page<FishResp>> getFishList(Pageable pageable) {
         return ResponseEntity
