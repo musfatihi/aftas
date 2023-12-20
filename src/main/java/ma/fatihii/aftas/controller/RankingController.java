@@ -38,6 +38,7 @@ public class RankingController {
                 .body(rankingService.getLeaderBoard(code));
     }
 
+
     @DeleteMapping("/{code}/{num}")
     public ResponseEntity<String> deleteRanking(@PathVariable String code,
                                                 @PathVariable Integer num) {
