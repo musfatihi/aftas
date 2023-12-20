@@ -38,6 +38,7 @@ public class MemberController {
                 .body(memberService.filter(num,name,familyName));
     }
 
+
     @PostMapping
     public ResponseEntity<MemberResp> saveMember(@RequestBody @Valid MemberReq memberReq) {
         return ResponseEntity
@@ -60,6 +61,5 @@ public class MemberController {
                 .ok()
                 .body("Membre supprimé avec succès");
     }
-
 
 }
