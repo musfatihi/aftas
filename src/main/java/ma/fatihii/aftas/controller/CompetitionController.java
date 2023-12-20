@@ -27,7 +27,7 @@ public class CompetitionController {
                 .ok()
                 .body(competitionService.findById(code).get());
     }
-    
+
 
     @GetMapping("/close/{code}")
     public ResponseEntity<String> closeCompetition(@PathVariable String code) {
@@ -45,7 +45,6 @@ public class CompetitionController {
                 .ok()
                 .body(competitionService.findAllCompetitions(status,pageable));
     }
-
 
     @PostMapping
     public ResponseEntity<CompetitionResp> saveCompetition(@RequestBody @Valid CompetitionReq competitionReq) {
