@@ -57,5 +57,4 @@ public class FishController {
                 .ok()
                 .body("Poisson supprimée avec succès");
     }
-
 }
