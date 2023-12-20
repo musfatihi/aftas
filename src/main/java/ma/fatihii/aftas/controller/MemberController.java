@@ -55,6 +55,7 @@ public class MemberController {
                 .body(memberService.update(memberReq).get());
     }
 
+
     @DeleteMapping("/{num}")
     public ResponseEntity<String> deleteMember(@PathVariable Integer num) {
         memberService.delete(num);
