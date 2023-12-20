@@ -37,6 +37,7 @@ public class CompetitionController {
                 .body("Competittion fermée");
     }
 
+
     @GetMapping
     public ResponseEntity<Page<CompetitionResp>> getCompetitions(
             @RequestParam(required = false) String status,
