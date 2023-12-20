@@ -57,4 +57,5 @@ public class LevelController {
                 .ok()
                 .body("Niveau supprimé avec succès");
     }
+
 }
