@@ -45,6 +45,7 @@ public class MemberController {
                 .body(memberService.save(memberReq).get());
     }
 
+
     @PutMapping
     public ResponseEntity<MemberResp> updateMember(@RequestBody @Valid MemberReq memberReq) {
         return ResponseEntity
