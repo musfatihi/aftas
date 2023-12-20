@@ -53,6 +53,7 @@ public class CompetitionController {
                 .body(competitionService.save(competitionReq).get());
     }
 
+
     @PutMapping
     public ResponseEntity<CompetitionResp> updateCompetition(@RequestBody @Valid CompetitionReq competitionReq) {
         return ResponseEntity
