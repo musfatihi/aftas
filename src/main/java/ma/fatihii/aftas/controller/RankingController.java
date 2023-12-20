@@ -49,5 +49,4 @@ public class RankingController {
                 .ok()
                 .body("Place reservée supprimée avec succès");
     }
-
 }
