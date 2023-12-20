@@ -42,6 +42,7 @@ public class FishController {
                 .body(fishService.save(fishReq).get());
     }
 
+
     @PutMapping
     public ResponseEntity<FishResp> updateFish(@RequestBody @Valid FishReq fishReq) {
         return ResponseEntity
