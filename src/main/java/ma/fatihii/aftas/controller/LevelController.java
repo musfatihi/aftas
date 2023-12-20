@@ -52,6 +52,7 @@ public class LevelController {
                 .body(levelService.update(levelReq).get());
     }
 
+
     @DeleteMapping("/{code}")
     public ResponseEntity<String> deleteLevel(@PathVariable Integer code) {
         levelService.delete(code);
