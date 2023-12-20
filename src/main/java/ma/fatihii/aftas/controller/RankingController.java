@@ -30,6 +30,7 @@ public class RankingController {
                 .body(rankingService.save(rankingReq).get());
     }
 
+
     @GetMapping("/competition/{code}")
     public ResponseEntity<List<RankingResp>> getLeaderBoard(@PathVariable String code) {
         return ResponseEntity
