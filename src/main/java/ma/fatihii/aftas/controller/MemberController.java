@@ -27,6 +27,7 @@ public class MemberController {
                 .body(memberService.findById(num).get());
     }
 
+
     @GetMapping
     public ResponseEntity<List<MemberResp>> filterMembers(
             @RequestParam(required = false) Integer num,
