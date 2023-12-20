@@ -36,6 +36,7 @@ public class FishController {
                 .body(fishService.findAllFish(pageable));
     }
 
+
     @PostMapping
     public ResponseEntity<FishResp> saveFish(@Valid @RequestBody  FishReq fishReq) {
         return ResponseEntity
