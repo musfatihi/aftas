@@ -84,28 +84,23 @@ public class CompetitionService implements ICompetition {
 
     public Page<CompetitionResp> findAllCompetitions(String status,Pageable pageable) {
 
-        Page<Competition> pageCompetition = competitionRepository.findAll(pageable);
+        Page<Competition> pageCompetition;
 
-        Predicate<Competition> isStatus = competition -> isStatusCompetition(competition, status);
+        pageCompetition = switch (status) {
+            case "pending" -> competitionRepository.findByStatusPending(pageable);
+            case "current" -> competitionRepository.findByStatusCurrent(pageable);
+            case "closed" -> competitionRepository.findByStatusClosed(pageable);
+            default -> competitionRepository.findAll(pageable);
+        };
 
-        if(status!=null){
-            return new PageImpl<>(
-                    pageCompetition.getContent().stream()
-                            .filter(isStatus)
-                            .map(this::convertCompetitionToCompetitionResp)
-                            .collect(Collectors.toList()),
-                    pageCompetition.getPageable(),
-                    pageCompetition.getTotalElements()
-            );
-        }else{
-            return new PageImpl<>(
-                    pageCompetition.getContent().stream()
-                            .map(this::convertCompetitionToCompetitionResp)
-                            .collect(Collectors.toList()),
-                    pageCompetition.getPageable(),
-                    pageCompetition.getTotalElements()
-            );
-        }
+        return new PageImpl<>(
+                pageCompetition.getContent().stream()
+                        .map(this::convertCompetitionToCompetitionResp)
+                        .collect(Collectors.toList()),
+                pageCompetition.getPageable(),
+                pageCompetition.getTotalElements()
+        );
+
     }
 
     @Override
@@ -177,26 +172,6 @@ public class CompetitionService implements ICompetition {
     private CompetitionResp convertCompetitionToCompetitionResp(Competition competition) {
         return modelMapper.map(competition,CompetitionResp.class);
     }
-
-    //--------------------------------------used to filter competition based on their states-----
-
-    private boolean isStatusCompetition(Competition competition,String status) {
-        return switch (status) {
-            case "current" -> competition.getDate().equals(LocalDate.now()) &&
-                    LocalTime.now().isAfter(competition.getStartTime()) &&
-                    LocalTime.now().isBefore(competition.getEndTime());
-            case "pending" -> competition.getDate().isAfter(LocalDate.now()) ||
-                    (competition.getDate().equals(LocalDate.now()) &&
-                            LocalTime.now().isBefore(competition.getStartTime())
-                    );
-            case "closed" -> competition.getDate().isBefore(LocalDate.now()) ||
-                    (competition.getDate().equals(LocalDate.now()) &&
-                            LocalTime.now().isAfter(competition.getEndTime())
-                    );
-            default -> false;
-        };
-    }
-
 
     //--------------------------------------Validation Competition Data---------------------------------
 

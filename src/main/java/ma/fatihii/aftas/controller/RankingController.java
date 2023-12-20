@@ -40,10 +40,8 @@ public class RankingController {
     @DeleteMapping("/{code}/{num}")
     public ResponseEntity<String> deleteRanking(@PathVariable String code,
                                                 @PathVariable Integer num) {
-        Member member = new Member();
-        member.setNum(num);
-        Competition competition = new Competition();
-        competition.setCode(code);
+        Member member = new Member();member.setNum(num);
+        Competition competition = new Competition();competition.setCode(code);
         rankingService.delete(new RankingCompositeKey(competition,member));
         return ResponseEntity
                 .ok()

@@ -3,7 +3,6 @@ package ma.fatihii.aftas.dto.competition;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
-import ma.fatihii.aftas.validation.StartEndTimeValid;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
@@ -15,13 +14,10 @@ public class CompetitionReq {
     private String code;
     @Future
     @DateTimeFormat(pattern = "yyyy-MM-dd")
-    //@JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate date;
     @NotNull
-    //@JsonFormat(pattern = "hh:mm:ss")
     private LocalTime startTime;
     @NotNull
-    //@JsonFormat(pattern = "hh:mm:ss")
     private LocalTime endTime;
     @Min(message = "Nombre de participants doit etre au moins 2", value = 2L)
     private Integer numberOfParticipants;

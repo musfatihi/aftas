@@ -20,8 +20,7 @@ public class Ranking implements Comparable<Ranking>{
 
     @Override
     public int compareTo(Ranking that) {
-        if(this.getScore()>that.getScore()) {return -1;}
-        else {return 1;}
+        return that.getScore().compareTo(this.getScore());
     }
 
 }
