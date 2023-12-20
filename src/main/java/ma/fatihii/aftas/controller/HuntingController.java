@@ -24,4 +24,5 @@ public class HuntingController {
                 .status(HttpStatus.CREATED)
                 .body(huntingService.save(huntingReq).get());
     }
+
 }
